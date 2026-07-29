@@ -3,7 +3,7 @@ from langchain_groq import ChatGroq
 from langchain_core.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
 # pyrefly: ignore [missing-import]
-from langchain.message import SystemMessage, ToolMessage, AIMessage
+from langchain_core.messages import SystemMessage, ToolMessage, AIMessage
 import os
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
@@ -40,6 +40,11 @@ class TeachingAssistantAgent:
             api_key=os.getenv("GROQ_API_KEY")
         )
 
+        tools_list = [retriever, web_search]
+
+        self.llm_with_tools = llm.bind_tools(tools_list)
+        self.tools_by_name = {tool.name: tool for tool in tools_list}
+
     def run_llm(self, state:dict) -> dict:    # Brain
         return {
             "messages": [
@@ -69,7 +74,31 @@ class TeachingAssistantAgent:
         }
 
     def tool_node(self, state:dict)->dict:    # Action
-        pass
+        """Performs the tool calls"""
+        result=[]
+
+        for tool_call in state['message'][-1].tool_calls:
+            if 'self' in tool_call["args"]:
+                del tool_call["args"]['self']
+
+                tool = self.tools_by_name[tool_call["name"]]
+                observation = tool.invoke(tool_call["args"])
+
+                if isinstance(observation, list):
+                    content_string="\n".join(observation)
+                else:
+                    content_string=str(observation)
+
+                result.append(
+                    ToolMessage(
+                        content=content_string,
+                        tool_call_id = tool_call["id"]
+                    )
+                )
+
+        return {"message": result}
+
+
 
 if __name__ ==  "__main__":
     # query = input("Enter your query: ")
