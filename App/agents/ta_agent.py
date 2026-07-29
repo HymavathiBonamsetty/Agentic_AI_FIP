@@ -2,7 +2,8 @@
 from langchain_groq import ChatGroq
 from langchain_core.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
-
+# pyrefly: ignore [missing-import]
+from langchain.message import SystemMessage, ToolMessage, AIMessage
 import os
 # pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
@@ -39,7 +40,35 @@ class TeachingAssistantAgent:
             api_key=os.getenv("GROQ_API_KEY")
         )
 
-    def run_llm(query: str) -> str:
+    def run_llm(self, state:dict) -> dict:    # Brain
+        return {
+            "messages": [
+                self.llm_with_tools.invoke(
+                    [
+                        SystemMessage(
+                    content="""
+                    You are a helpful Teaching Assistant for the C Programming language at DSTAM, Bangalore.
+                    
+                    You must answer all questions keeping in mind that the answers are to be given from the 
+                    context of the DSTAM curriculum C Programming Course. You have access to the `retriever` 
+                    tool. Any information not available in the pdf tool is to be attained using the `web_search` tool.
+                    
+                    Strictly maintain that you are a C programming teaching agent only. Do not answer irrelevant questions.
+                    
+                    Output Format:
+                    1. [Answer 1]
+                    2. [Answer 2]
+                    3. [Answer 3]
+                    """
+                        )
+                    ]
+                    + state['messages']
+                )
+            ],
+            "llm_calls": state.get('llm_calls', 0) + 1
+        }
+
+    def tool_node(self, state:dict)->dict:    # Action
         pass
 
 if __name__ ==  "__main__":
