@@ -55,7 +55,7 @@ class TeachingAssistantAgent:
                     You are a helpful Teaching Assistant for the C Programming language at DSTAM, Bangalore.
                     
                     You must answer all questions keeping in mind that the answers are to be given from the 
-                    context of the DSTAM curriculum C Programming Course. You have access to the `retriever` 
+                    context of the DSATM curriculum C Programming Course. You have access to the `retriever` 
                     tool. Any information not available in the pdf tool is to be attained using the `web_search` tool.
                     
                     Strictly maintain that you are a C programming teaching agent only. Do not answer irrelevant questions.
@@ -77,7 +77,7 @@ class TeachingAssistantAgent:
         """Performs the tool calls"""
         result=[]
 
-        for tool_call in state['message'][-1].tool_calls:
+        for tool_call in state['messages'][-1].tool_calls:
             if 'self' in tool_call["args"]:
                 del tool_call["args"]['self']
 
